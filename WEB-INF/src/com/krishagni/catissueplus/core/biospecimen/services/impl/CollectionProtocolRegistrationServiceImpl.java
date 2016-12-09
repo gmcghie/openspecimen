@@ -875,7 +875,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			.collect(Collectors.toList());
 	}
 
-	private CollectionProtocolRegistrationDetail registerParticipantAndCreateVisits(BulkCollectionProtocolRegistrationDetail bulkCprDetail) {
+	private CollectionProtocolRegistrationDetail registerParticipantAndCreateVisits(
+			BulkCollectionProtocolRegistrationDetail bulkCprDetail) {
 		CollectionProtocolRegistrationDetail detail = new CollectionProtocolRegistrationDetail();
 		detail.setRegistrationDate(new Date());
 		detail.setCpId(bulkCprDetail.getCpId());
@@ -895,8 +896,7 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		return cpr;
 	}
 
-	private void createVisits(CollectionProtocolRegistrationDetail cpr,
-							  List<CollectionProtocolEventDetail> events) {
+	private void createVisits(CollectionProtocolRegistrationDetail cpr, List<CollectionProtocolEventDetail> events) {
 		if (CollectionUtils.isEmpty(events)) {
 			return;
 		}

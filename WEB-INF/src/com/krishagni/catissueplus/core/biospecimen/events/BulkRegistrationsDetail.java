@@ -2,14 +2,14 @@ package com.krishagni.catissueplus.core.biospecimen.events;
 
 import java.util.List;
 
-public class BulkCollectionProtocolRegistrationDetail {
+public class BulkRegistrationsDetail {
     private Long cpId;
 
     private String cpTitle;
 
     private String cpShortTitle;
 
-    private int noOfRegistrations;
+    private int regCount;
 
     private List<CollectionProtocolEventDetail> events;
 
@@ -37,12 +37,12 @@ public class BulkCollectionProtocolRegistrationDetail {
         this.cpShortTitle = cpShortTitle;
     }
 
-    public Integer getNoOfRegistrations() {
-        return noOfRegistrations;
+    public Integer getRegCount() {
+        return regCount;
     }
 
-    public void setNoOfRegistrations(int noOfRegistrations) {
-        this.noOfRegistrations = noOfRegistrations;
+    public void setRegCount(int regCount) {
+        this.regCount = regCount;
     }
 
     public List<CollectionProtocolEventDetail> getEvents() {

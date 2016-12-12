@@ -35,7 +35,7 @@ import com.krishagni.catissueplus.core.biospecimen.domain.factory.CpeErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.CprErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.ParticipantErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.VisitErrorCode;
-import com.krishagni.catissueplus.core.biospecimen.events.BulkCollectionProtocolRegistrationDetail;
+import com.krishagni.catissueplus.core.biospecimen.events.BulkRegistrationsDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolEventDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolRegistrationDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.ConsentDetail;
@@ -149,14 +149,14 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 
 	@Override
 	@PlusTransactional
-	public ResponseEvent<List<CollectionProtocolRegistrationDetail>> bulkRegistration(
-			RequestEvent<BulkCollectionProtocolRegistrationDetail> req) {
+	public ResponseEvent<List<CollectionProtocolRegistrationDetail>> bulkRegistration(RequestEvent<BulkRegistrationsDetail> req) {
 		try {
-			BulkCollectionProtocolRegistrationDetail bulkCprDetail = req.getPayload();
+			BulkRegistrationsDetail detail = req.getPayload();
+			Date regDate = Calendar.getInstance().getTime();
 
 			List<CollectionProtocolRegistrationDetail> registrations = new ArrayList<>();
-			for (int i = 1; i <= bulkCprDetail.getNoOfRegistrations(); i++) {
-				registrations.add(registerParticipantAndCreateVisits(bulkCprDetail));
+			for (int i = 0; i < detail.getRegCount(); i++) {
+				registrations.add(registerAndCreateVisits(detail, regDate));
 			}
 
 			return ResponseEvent.response(registrations);
@@ -875,24 +875,22 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			.collect(Collectors.toList());
 	}
 
-	private CollectionProtocolRegistrationDetail registerParticipantAndCreateVisits(
-			BulkCollectionProtocolRegistrationDetail bulkCprDetail) {
-		CollectionProtocolRegistrationDetail detail = new CollectionProtocolRegistrationDetail();
-		detail.setRegistrationDate(new Date());
-		detail.setCpId(bulkCprDetail.getCpId());
-		detail.setCpTitle(bulkCprDetail.getCpTitle());
-		detail.setCpShortTitle(bulkCprDetail.getCpShortTitle());
+	private CollectionProtocolRegistrationDetail registerAndCreateVisits(BulkRegistrationsDetail bulkRegDetail, Date regDate) {
+		CollectionProtocolRegistrationDetail cprDetail = new CollectionProtocolRegistrationDetail();
+		cprDetail.setRegistrationDate(regDate);
+		cprDetail.setCpId(cprDetail.getCpId());
+		cprDetail.setCpTitle(cprDetail.getCpTitle());
+		cprDetail.setCpShortTitle(cprDetail.getCpShortTitle());
 
 		//
 		// Register participant
 		//
-		CollectionProtocolRegistrationDetail cpr = saveOrUpdateRegistration(detail, null, true);
+		CollectionProtocolRegistrationDetail cpr = saveOrUpdateRegistration(cprDetail, null, true);
 
 		//
 		// Create pending visits
 		//
-		createVisits(cpr, bulkCprDetail.getEvents());
-
+		createVisits(cpr, bulkRegDetail.getEvents());
 		return cpr;
 	}
 

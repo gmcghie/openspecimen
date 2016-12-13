@@ -155,8 +155,12 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			Date regDate = Calendar.getInstance().getTime();
 
 			List<CollectionProtocolRegistrationDetail> registrations = new ArrayList<>();
+			boolean checkPermission = true;
 			for (int i = 0; i < detail.getRegCount(); i++) {
-				registrations.add(registerAndCreateVisits(detail, regDate));
+				registrations.add(registerAndCreateVisits(detail, regDate, checkPermission));
+				if (i == 0) {
+					checkPermission = false;
+				}
 			}
 
 			return ResponseEvent.response(registrations);
@@ -482,12 +486,23 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			CollectionProtocolRegistrationDetail input,
 			CollectionProtocolRegistration existing ,
 			boolean saveParticipant) {
+		return saveOrUpdateRegistration(input, existing, saveParticipant, true);
+	}
+
+	private CollectionProtocolRegistrationDetail saveOrUpdateRegistration(
+			CollectionProtocolRegistrationDetail input,
+			CollectionProtocolRegistration existing ,
+			boolean saveParticipant,
+			boolean checkPermission) {
 
 		CollectionProtocolRegistration cpr = cprFactory.createCpr(existing, input);
-		if (existing == null) {
-			AccessCtrlMgr.getInstance().ensureCreateCprRights(cpr);
-		} else {
-			AccessCtrlMgr.getInstance().ensureUpdateCprRights(cpr);
+
+		if (checkPermission) {
+			if (existing == null) {
+				AccessCtrlMgr.getInstance().ensureCreateCprRights(cpr);
+			} else {
+				AccessCtrlMgr.getInstance().ensureUpdateCprRights(cpr);
+			}
 		}
 		
 		OpenSpecimenException ose = new OpenSpecimenException(ErrorType.USER_ERROR);
@@ -875,17 +890,17 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			.collect(Collectors.toList());
 	}
 
-	private CollectionProtocolRegistrationDetail registerAndCreateVisits(BulkRegistrationsDetail bulkRegDetail, Date regDate) {
+	private CollectionProtocolRegistrationDetail registerAndCreateVisits(BulkRegistrationsDetail bulkRegDetail, Date regDate, boolean checkPermission) {
 		CollectionProtocolRegistrationDetail cprDetail = new CollectionProtocolRegistrationDetail();
 		cprDetail.setRegistrationDate(regDate);
-		cprDetail.setCpId(cprDetail.getCpId());
-		cprDetail.setCpTitle(cprDetail.getCpTitle());
-		cprDetail.setCpShortTitle(cprDetail.getCpShortTitle());
+		cprDetail.setCpId(bulkRegDetail.getCpId());
+		cprDetail.setCpTitle(bulkRegDetail.getCpTitle());
+		cprDetail.setCpShortTitle(bulkRegDetail.getCpShortTitle());
 
 		//
 		// Register participant
 		//
-		CollectionProtocolRegistrationDetail cpr = saveOrUpdateRegistration(cprDetail, null, true);
+		CollectionProtocolRegistrationDetail cpr = saveOrUpdateRegistration(cprDetail, null, true, checkPermission);
 
 		//
 		// Create pending visits

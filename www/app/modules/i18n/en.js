@@ -368,6 +368,11 @@
     "confirm_anonymize": "Are you sure you want to erase all PHI data of participant?",
     "anonymized_successfully": "Successfully erased participant PHI data",
 
+    "bulk_registration": "Bulk Participant Registration",
+    "num_of_participants": "Number of Participants",
+    "collection_site": "Collection Site",
+    "participant_registered": "{{numOfParticipants}} participants registered successfully.",
+
     "consent": {
       "signed_form": "Signed Consent Form",
       "deleting_form": "Deleting Signed Consent Form",
@@ -404,6 +409,8 @@
       "ignore_matches": "Ignore Matches and Proceed",
       "lookup": "Lookup",
       "bulk_register": "Bulk Register",
+      "single": "Single",
+      "multiple": "Multiple",
       "specimen_catalog": "Specimen Catalog",
       "import": "Import",
       "anonymize": "Anonymize"

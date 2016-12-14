@@ -4,6 +4,7 @@ package com.krishagni.catissueplus.core.biospecimen.services;
 import java.util.List;
 
 import com.krishagni.catissueplus.core.biospecimen.domain.Visit;
+import com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolEventDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.FileDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.LabelPrintJobSummary;
 import com.krishagni.catissueplus.core.biospecimen.events.PrintVisitNameDetail;
@@ -59,4 +60,6 @@ public interface VisitService {
 	public List<Visit> getVisitsByName(List<String> visitNames);
 
 	public List<Visit> getSpecimenVisits(List<String> specimenLabels);
+
+	public List<VisitDetail> addVisits(Long cprId, List<CollectionProtocolEventDetail> events);
 }

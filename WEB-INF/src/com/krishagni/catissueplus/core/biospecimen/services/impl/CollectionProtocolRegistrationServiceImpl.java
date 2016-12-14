@@ -905,26 +905,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		//
 		// Create pending visits
 		//
-		createVisits(cpr, bulkRegDetail.getEvents());
+		visitSvc.addVisits(cpr.getId(), bulkRegDetail.getEvents());
+
 		return cpr;
-	}
-
-	private void createVisits(CollectionProtocolRegistrationDetail cpr, List<CollectionProtocolEventDetail> events) {
-		if (CollectionUtils.isEmpty(events)) {
-			return;
-		}
-
-		for (CollectionProtocolEventDetail cpeDetail: events) {
-			VisitDetail visitDetail = new VisitDetail();
-			visitDetail.setCpId(cpr.getCpId());
-			visitDetail.setCprId(cpr.getId());
-			visitDetail.setEventId(cpeDetail.getId());
-			visitDetail.setEventLabel(cpeDetail.getEventLabel());
-			visitDetail.setStatus(Status.VISIT_STATUS_PENDING.getStatus());
-			visitDetail.setSite(cpeDetail.getDefaultSite());
-
-			ResponseEvent<VisitDetail> resp = visitSvc.addVisit(new RequestEvent<>(visitDetail));
-			resp.throwErrorIfUnsuccessful();
-		}
 	}
 }

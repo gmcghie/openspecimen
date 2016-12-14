@@ -9,6 +9,8 @@ angular.module('os.biospecimen.participant.bulkregistration', ['os.biospecimen.m
           events: []
         }
       };
+
+      $scope.codingEnabled = $scope.global.appProps.cp_coding_enabled;
     }
 
     $scope.toggleAllEventSelect = function() {

@@ -52,8 +52,16 @@
       </li>
 
       <li class="item">
-        <strong class="key key-sm" translate="cp.label_format.manual">User Inputs Allowed for</strong>
+        <strong class="key key-sm" translate="cp.label_format.manual">User Inputs Allowed</strong>
         <span class="value value-md">{{settingCtx.userInputLabels | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="cp.bulk_part_reg_allowed">Bulk Participant Registration Allowed</strong>
+        <span class="value value-md" ng-switch on="settingCtx.cp.bulkPartRegEnabled">
+          <span ng-switch-when="true" translate="common.yes">Yes</span>
+          <span ng-switch-default translate="common.no">No</span>
+        </span>
       </li>
     </ul>
 
@@ -191,6 +199,22 @@
         <label class="checkbox-inline">
           <input type="checkbox" ng-model="settingCtx.cp.manualSpecLabelEnabled">
           <span translate="cp.spec_labels">Specimen Labels</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label col-xs-3">
+        <span translate="cp.bulk_part_reg_allowed">Bulk Participant Registration Allowed</span>
+      </label>
+      <div class="col-xs-6">
+        <label class="radio-inline">
+          <input type="radio" name="bulkPartReg" ng-model="settingCtx.cp.bulkPartRegEnabled" ng-value="true">
+          <span translate="common.yes">Yes</span>
+        </label>
+        <label class="radio-inline">
+          <input type="radio" name="bulkPartReg" ng-model="settingCtx.cp.bulkPartRegEnabled" ng-value="false">
+          <span translate="common.no">No</span>
         </label>
       </div>
     </div>

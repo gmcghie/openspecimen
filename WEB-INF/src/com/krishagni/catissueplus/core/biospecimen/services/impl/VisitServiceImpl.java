@@ -19,6 +19,7 @@ import com.krishagni.catissueplus.core.biospecimen.domain.Specimen;
 import com.krishagni.catissueplus.core.biospecimen.domain.Visit;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.VisitErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.VisitFactory;
+import com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolEventDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.FileDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.LabelPrintJobSummary;
 import com.krishagni.catissueplus.core.biospecimen.events.PrintVisitNameDetail;
@@ -178,6 +179,33 @@ public class VisitServiceImpl implements VisitService, ObjectStateParamsResolver
 		} catch (Exception e) {
 			return ResponseEvent.serverError(e);
 		}
+	}
+
+	@Override
+	public List<VisitDetail> addVisits(Long cprId, List<CollectionProtocolEventDetail> events) {
+		if (CollectionUtils.isEmpty(events)) {
+			return null;
+		}
+
+		List<VisitDetail> visits = new ArrayList<VisitDetail>();
+		boolean checkPermission = true;
+		for (CollectionProtocolEventDetail cpeDetail: events) {
+			VisitDetail visitDetail = new VisitDetail();
+			visitDetail.setCprId(cprId);
+			visitDetail.setEventId(cpeDetail.getId());
+			visitDetail.setEventLabel(cpeDetail.getEventLabel());
+			visitDetail.setSite(cpeDetail.getDefaultSite());
+			visitDetail.setStatus(Visit.VISIT_STATUS_PENDING);
+
+			VisitDetail visit = saveOrUpdateVisit(visitDetail, false, false, checkPermission);
+			visits.add(visit);
+
+			if (checkPermission) {
+				checkPermission = false;
+			}
+		}
+
+		return visits;
 	}
 
 	@Override
@@ -476,6 +504,10 @@ public class VisitServiceImpl implements VisitService, ObjectStateParamsResolver
 	}
 
 	private VisitDetail saveOrUpdateVisit(VisitDetail input, boolean update, boolean partial) {
+		return saveOrUpdateVisit(input, update, partial, true);
+	}
+
+	private VisitDetail saveOrUpdateVisit(VisitDetail input, boolean update, boolean partial, boolean checkPermission) {
 		Visit existing = null;
 		String prevStatus = null;   
 		
@@ -495,8 +527,10 @@ public class VisitServiceImpl implements VisitService, ObjectStateParamsResolver
 		} else {
 			visit = visitFactory.createVisit(input);
 		}
-		
-		AccessCtrlMgr.getInstance().ensureCreateOrUpdateVisitRights(visit);
+
+		if (checkPermission) {
+			AccessCtrlMgr.getInstance().ensureCreateOrUpdateVisitRights(visit);
+		}
 		
 		OpenSpecimenException ose = new OpenSpecimenException(ErrorType.USER_ERROR);
 		ensureValidAndUniqueVisitName(existing, visit, ose);

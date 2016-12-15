@@ -549,6 +549,8 @@ public class FormDaoImpl extends AbstractDao<FormContextBean> implements FormDao
 			}
 		}
 		
+		query.setParameter("sysForm", !crit.excludeSysForm());
+
 		return query;
 	}
 
@@ -593,6 +595,8 @@ public class FormDaoImpl extends AbstractDao<FormContextBean> implements FormDao
 			sqlBuilder.append(")");
 		}
 		
+		sqlBuilder.append(" and derived.sysForm = :sysForm ");
+
 		if (!countReq) {
 			sqlBuilder.append(" order by modificationTime desc ");
 		}

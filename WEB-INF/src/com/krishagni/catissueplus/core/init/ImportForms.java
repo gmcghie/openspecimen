@@ -109,6 +109,8 @@ public abstract class ImportForms implements InitializingBean {
 	
 	protected abstract Collection<String> listFormFiles() throws IOException;
 	
+	protected abstract boolean isSysForm(String formFile);
+
 	protected abstract FormContextBean getFormContext(String formFile, Long formId);
 
 	protected void saveOrUpdateFormCtx(String formFile, Long formId) {
@@ -132,7 +134,7 @@ public abstract class ImportForms implements InitializingBean {
 				in = preprocessForms(formFile);
 				String existingDigest = daoFactory.getFormDao().getFormChangeLogDigest(formFile);
 				String newDigest = Utility.getInputStreamDigest(in);
-				if (existingDigest != null && existingDigest.equals(newDigest)) {
+				if (existingDigest != null && (existingDigest.equals(newDigest) || !isSysForm(formFile))) {
 					continue;
 				}
 

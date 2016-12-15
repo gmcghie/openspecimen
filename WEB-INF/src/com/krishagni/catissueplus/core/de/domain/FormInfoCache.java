@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import com.krishagni.catissueplus.core.common.Pair;
+import com.krishagni.catissueplus.core.common.errors.OpenSpecimenException;
+import com.krishagni.catissueplus.core.de.events.FormContextDetail;
 import com.krishagni.catissueplus.core.de.repository.DaoFactory;
 import com.krishagni.catissueplus.core.de.services.FormContextProcessor;
 import com.krishagni.catissueplus.core.de.services.FormService;
@@ -138,6 +140,7 @@ class FormInfoCache implements FormContextProcessor, FormEventsListener {
 
 	@Override
 	public void onUpdate(Container container) {
+		ensureNotSystemForm(container);
 		formsCache.remove(container.getName());
 	}
 
@@ -172,6 +175,24 @@ class FormInfoCache implements FormContextProcessor, FormEventsListener {
 		}
 
 		return contextInfoMap.get(cpId);
+	}
+
+	private void ensureNotSystemForm(Container container) {
+		//
+		// Wont allow user to update form using form builder.
+		// Managed table is false while updating form using form builder.
+		// Managed table can be true while updating form using import API and hence skip 'isSysForm' check
+		//
+		if (container.isManagedTables()) {
+			return;
+		}
+
+		List<FormContextDetail> formCtxts = daoFactory.getFormDao().getFormContexts(container.getId());
+		formCtxts.forEach(ctxt -> {
+			if (ctxt.isSysForm()) {
+				throw OpenSpecimenException.userError(FormErrorCode.SYS_FORM_UPDATE_NOT_ALLOWED);
+			}
+		});
 	}
 
 	private static class ContextInfo {

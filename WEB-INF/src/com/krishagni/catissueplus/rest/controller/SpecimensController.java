@@ -98,7 +98,10 @@ public class SpecimensController {
 			List<Long> ids,
 
 			@RequestParam(value = "label", required = false)
-			List<String> labels) {
+			List<String> labels,
+
+			@RequestParam(value = "barcode", required = false)
+			List<String> barcodes) {
 				
 		if (cprId != null) { // TODO: Move this to CPR controller
 			VisitSpecimensQueryCriteria crit = new VisitSpecimensQueryCriteria();
@@ -113,9 +116,10 @@ public class SpecimensController {
 			ResponseEvent<List<SpecimenInfo>> resp = specimenSvc.getSpecimensById(getRequest(ids));
 			resp.throwErrorIfUnsuccessful();
 			return resp.getPayload();
-		} else if (CollectionUtils.isNotEmpty(labels)) {
+		} else if (CollectionUtils.isNotEmpty(labels) || CollectionUtils.isNotEmpty(barcodes)) {
 			SpecimenListCriteria crit = new SpecimenListCriteria()
 				.labels(labels)
+				.barcodes(barcodes)
 				.storageLocationSite(storageLocationSite);
 
 			ResponseEvent<List<SpecimenInfo>> resp = specimenSvc.getSpecimens(getRequest(crit));
@@ -217,10 +221,16 @@ public class SpecimensController {
 	@RequestMapping(method = RequestMethod.DELETE, value="/{id}")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public SpecimenInfo deleteSpecimen(@PathVariable("id") Long specimenId) {
+	public SpecimenInfo deleteSpecimen(
+			@PathVariable("id")
+			Long specimenId,
+
+			@RequestParam(value = "forceDelete", required = false, defaultValue = "false")
+			boolean forceDelete) {
+
 		CpEntityDeleteCriteria crit = new CpEntityDeleteCriteria();
 		crit.setId(specimenId);
-		crit.setForceDelete(false);
+		crit.setForceDelete(forceDelete);
 
 		ResponseEvent<List<SpecimenInfo>> resp = specimenSvc.deleteSpecimens(getRequest(Collections.singletonList(crit)));
 		resp.throwErrorIfUnsuccessful();

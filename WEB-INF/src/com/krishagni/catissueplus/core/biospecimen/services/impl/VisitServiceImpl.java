@@ -20,6 +20,7 @@ import com.krishagni.catissueplus.core.biospecimen.domain.Visit;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.VisitErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.VisitFactory;
 import com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolEventDetail;
+import com.krishagni.catissueplus.core.biospecimen.events.CpEntityDeleteCriteria;
 import com.krishagni.catissueplus.core.biospecimen.events.FileDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.LabelPrintJobSummary;
 import com.krishagni.catissueplus.core.biospecimen.events.PrintVisitNameDetail;
@@ -225,12 +226,12 @@ public class VisitServiceImpl implements VisitService, ObjectStateParamsResolver
 
 	@Override
 	@PlusTransactional
-	public ResponseEvent<VisitDetail> deleteVisit(RequestEvent<EntityQueryCriteria> req) {
+	public ResponseEvent<VisitDetail> deleteVisit(RequestEvent<CpEntityDeleteCriteria> req) {
 		try {
-			EntityQueryCriteria crit = req.getPayload();
+			CpEntityDeleteCriteria crit = req.getPayload();
 			Visit visit = getVisit(crit.getId(), crit.getName());
 			AccessCtrlMgr.getInstance().ensureDeleteVisitRights(visit);
-			visit.delete();
+			visit.delete(!crit.isForceDelete());
 			return ResponseEvent.response(VisitDetail.from(visit));
 		} catch (OpenSpecimenException ose) {
 			return ResponseEvent.error(ose);

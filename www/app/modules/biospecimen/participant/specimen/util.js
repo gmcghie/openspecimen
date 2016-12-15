@@ -208,9 +208,31 @@ angular.module('os.biospecimen.specimen')
 
       return Specimen.query(filterOpts).then(
         function(specimens) {
-          return resolveSpecimens(labels, specimens, errorOpts);
+          return resolveSpecimens(labels, filterOpts.barcode, specimens, errorOpts);
         }
       );
+    }
+
+    function getBarcodeSpecimens(barcodes, specimens, errorOpts) {
+      var notFoundBarcodes = [];
+
+      var spmnMap = specimens.reduce(function(map, spmn) {
+        map[spmn.barcode] = spmn;
+        return map;
+      }, {});
+
+      angular.forEach(barcodes, function(barcode) {
+        if (!spmnMap[barcode]) {
+          notFoundBarcodes.push(barcode);
+        }
+      });
+
+      if (notFoundBarcodes.length != 0) {
+        showError(notFoundBarcodes, errorOpts);
+        return deferred(undefined);
+      }
+
+      return deferred(specimens);
     }
 
     function deferred(resp) {
@@ -219,7 +241,11 @@ angular.module('os.biospecimen.specimen')
       return deferred.promise;
     }
 
-    function resolveSpecimens(labels, specimens, errorOpts) {
+    function resolveSpecimens(labels, barcodes, specimens, errorOpts) {
+      if (!labels || labels.length == 0) {
+        return getBarcodeSpecimens(barcodes, specimens, errorOpts);
+      }
+
       var specimensMap = {};
       angular.forEach(specimens, function(spmn) {
         if (!specimensMap[spmn.label]) {
@@ -254,7 +280,7 @@ angular.module('os.biospecimen.specimen')
       });
 
       if (notFoundLabels.length != 0) {
-        showError(notFoundLabels, errorOpts)
+        showError(notFoundLabels, errorOpts);
         return deferred(undefined);
       }
 

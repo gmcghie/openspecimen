@@ -511,4 +511,96 @@
       </column>
     </addColumn>
   </changeSet>
+
+  <changeSet author="vgaikwad" id="Specimen kit">
+    <createTable tableName="OS_SPECIMEN_KITS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SENDING_SITE_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="RECEIVING_SITE_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SENDER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SENDING_DATE" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="COMMENTS" type="${text.type}(255)">
+      </column>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="OS kit table sequence" dbms="oracle">
+    <createSequence
+      sequenceName="OS_SPECIMEN_KITS_SEQ"
+      startValue="1"
+      incrementBy="1"
+      ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK to specimen kit collection protocol">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_CP_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="CP_ID"
+      referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK to specimen kit sending site">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_SENDING_SITE_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="SENDING_SITE_ID"
+      referencedTableName="CATISSUE_SITE"
+      referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK to specimen kit receiving site">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_RECEIVING_SITE_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="RECEIVING_SITE_ID"
+      referencedTableName="CATISSUE_SITE" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="ADD FK on specimen kit sender">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_SENDER_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="SENDER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Kit specimens">
+    <createTable tableName="OS_KIT_SPECIMENS">
+      <column name="KIT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="ADD FK on kit of specimen">
+    <addForeignKeyConstraint constraintName="FK_KIT_SPECIMENS_KIT_ID"
+      baseTableName="OS_KIT_SPECIMENS" baseColumnNames="KIT_ID"
+      referencedTableName="OS_SPECIMEN_KITS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="ADD FK on specimens in a kit">
+    <addForeignKeyConstraint constraintName="FK_OS_KIT_SPECIMENS_SPECIMEN_ID"
+      baseTableName="OS_KIT_SPECIMENS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
 </databaseChangeLog>

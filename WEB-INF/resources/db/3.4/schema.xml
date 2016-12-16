@@ -603,4 +603,11 @@
       baseTableName="OS_KIT_SPECIMENS" baseColumnNames="SPECIMEN_ID"
       referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
   </changeSet>
+
+  <changeSet author="vgaikwad" id="Unique specimen in a kit">
+    <addUniqueConstraint
+      constraintName="OS_KIT_SPECIMENS_UQ"
+      tableName="OS_KIT_SPECIMENS"
+      columnNames="KIT_ID, SPECIMEN_ID"/>
+  </changeSet>
 </databaseChangeLog>

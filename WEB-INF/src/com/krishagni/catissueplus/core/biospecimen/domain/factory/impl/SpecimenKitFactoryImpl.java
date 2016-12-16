@@ -23,6 +23,7 @@ import com.krishagni.catissueplus.core.biospecimen.events.SpecimenKitDetail;
 import com.krishagni.catissueplus.core.biospecimen.repository.DaoFactory;
 import com.krishagni.catissueplus.core.biospecimen.repository.SpecimenListCriteria;
 import com.krishagni.catissueplus.core.common.errors.ActivityStatusErrorCode;
+import com.krishagni.catissueplus.core.common.errors.ErrorCode;
 import com.krishagni.catissueplus.core.common.errors.ErrorType;
 import com.krishagni.catissueplus.core.common.errors.OpenSpecimenException;
 import com.krishagni.catissueplus.core.common.events.UserSummary;
@@ -82,48 +83,34 @@ public class SpecimenKitFactoryImpl implements SpecimenKitFactory {
 
     private void setSendingSite(SpecimenKitDetail detail, SpecimenKit kit, OpenSpecimenException ose) {
         String sendingSite = detail.getSendingSite();
-
-        if (StringUtils.isBlank(sendingSite)) {
-            ose.addError(SpecimenKitErrorCode.SEND_SITE_REQUIRED);
-            return;
-        }
-
-        Site site = daoFactory.getSiteDao().getSiteByName(sendingSite);
-        if (site == null) {
-            ose.addError(SiteErrorCode.NOT_FOUND);
-            return;
-        }
-
-        CollectionProtocol cp = kit.getCollectionProtocol();
-        if (cp != null && !cp.getRepositories().contains(site)) {
-            ose.addError(SpecimenKitErrorCode.INVALID_SEND_SITE, sendingSite);
-            return;
-        }
-
+        Site site = getSite(kit, sendingSite, SpecimenKitErrorCode.SEND_SITE_REQUIRED, SpecimenKitErrorCode.INVALID_SEND_SITE,  ose);
         kit.setSendingSite(site);
     }
 
     private void setReceivingSite(SpecimenKitDetail detail, SpecimenKit kit, OpenSpecimenException ose) {
         String receivingSite = detail.getReceivingSite();
+        Site site = getSite(kit, receivingSite, SpecimenKitErrorCode.RECV_SITE_REQUIRED, SpecimenKitErrorCode.INVALID_RECV_SITE, ose);
+        kit.setReceivingSite(site);
+    }
 
-        if (StringUtils.isBlank(receivingSite)) {
-            ose.addError(SpecimenKitErrorCode.RECV_SITE_REQUIRED);
-            return;
+    private Site getSite(SpecimenKit kit, String siteName, ErrorCode siteReqError, ErrorCode invalidSiteError, OpenSpecimenException ose) {
+        if (StringUtils.isBlank(siteName)) {
+            ose.addError(siteReqError);
+            return null;
         }
 
-        Site site = daoFactory.getSiteDao().getSiteByName(receivingSite);
+        Site site = daoFactory.getSiteDao().getSiteByName(siteName);
         if (site == null) {
             ose.addError(SiteErrorCode.NOT_FOUND);
-            return;
+            return null;
         }
 
         CollectionProtocol cp = kit.getCollectionProtocol();
         if (cp != null && !cp.getRepositories().contains(site)) {
-            ose.addError(SpecimenKitErrorCode.INVALID_RECV_SITE, receivingSite);
-            return;
+            ose.addError(invalidSiteError, siteName);
+            return null;
         }
-
-        kit.setReceivingSite(site);
+        return site;
     }
 
     private void setSendingDate(SpecimenKitDetail detail, SpecimenKit kit, OpenSpecimenException ose) {

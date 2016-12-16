@@ -133,7 +133,7 @@ public class SpecimenKitFactoryImpl implements SpecimenKitFactory {
         if (specimens.size() != ids.size()) {
             ose.addError(SpecimenKitErrorCode.INVALID_SPECIMENS);
         } else {
-            kit.setSpecimens(new HashSet<Specimen>(specimens));
+            kit.setSpecimens(new HashSet<>(specimens));
         }
     }
 

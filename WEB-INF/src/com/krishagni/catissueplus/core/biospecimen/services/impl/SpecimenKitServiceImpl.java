@@ -29,9 +29,7 @@ public class SpecimenKitServiceImpl implements SpecimenKitService {
     @PlusTransactional
     public ResponseEvent<SpecimenKitDetail> getSpecimenKit(RequestEvent<Long> req) {
         try {
-            SpecimenKit kit = getSpecimenKit(req.getPayload());
-
-            return ResponseEvent.response(SpecimenKitDetail.from(kit));
+            return ResponseEvent.response(SpecimenKitDetail.from(getSpecimenKit(req.getPayload())));
         } catch (OpenSpecimenException ose) {
             return ResponseEvent.error(ose);
         } catch (Exception e) {
@@ -43,9 +41,7 @@ public class SpecimenKitServiceImpl implements SpecimenKitService {
     @PlusTransactional
     public ResponseEvent<SpecimenKitDetail> addSpecimenKit(RequestEvent<SpecimenKitDetail> req) {
         try {
-            SpecimenKitDetail detail = req.getPayload();
-            SpecimenKit kit = specimenKitFactory.createSpecimenKit(detail);
-
+            SpecimenKit kit = specimenKitFactory.createSpecimenKit(req.getPayload());
             daoFactory.getSpecimenKitDao().saveOrUpdate(kit);
             return ResponseEvent.response(SpecimenKitDetail.from(kit));
         } catch (OpenSpecimenException ose) {
@@ -61,9 +57,10 @@ public class SpecimenKitServiceImpl implements SpecimenKitService {
         try {
             SpecimenKitDetail detail = req.getPayload();
             SpecimenKit existing = getSpecimenKit(detail.getId());
-            SpecimenKit kit = specimenKitFactory.createSpecimenKit(detail);
 
+            SpecimenKit kit = specimenKitFactory.createSpecimenKit(detail);
             existing.update(kit);
+
             daoFactory.getSpecimenKitDao().saveOrUpdate(existing);
             return ResponseEvent.response(SpecimenKitDetail.from(existing));
         } catch (OpenSpecimenException ose) {

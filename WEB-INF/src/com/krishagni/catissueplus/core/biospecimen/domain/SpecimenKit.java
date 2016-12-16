@@ -95,10 +95,10 @@ public class SpecimenKit extends BaseEntity {
     }
 
     public void update(SpecimenKit kit) {
+        setCollectionProtocol(kit.getCollectionProtocol());
         setSendingSite(kit.getSendingSite());
         setReceivingSite(kit.getReceivingSite());
         setSendingDate(kit.getSendingDate());
-        setCollectionProtocol(kit.getCollectionProtocol());
         setSender(kit.getSender());
         setComments(kit.getComments());
         setActivityStatus(kit.getActivityStatus());

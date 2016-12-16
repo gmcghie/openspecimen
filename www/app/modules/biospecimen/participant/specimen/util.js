@@ -213,19 +213,20 @@ angular.module('os.biospecimen.specimen')
       );
     }
 
-    function getBarcodeSpecimens(barcodes, specimens, errorOpts) {
-      var notFoundBarcodes = [];
+    function ensureAllBarcodesExist(barcodes, specimens, errorOpts) {
+      var spmnsMap = specimens.reduce(
+        function(map, spmn) {
+          map[spmn.barcode] = spmn;
+          return map;
+        },
+        {}
+      );
 
-      var spmnMap = specimens.reduce(function(map, spmn) {
-        map[spmn.barcode] = spmn;
-        return map;
-      }, {});
-
-      angular.forEach(barcodes, function(barcode) {
-        if (!spmnMap[barcode]) {
-          notFoundBarcodes.push(barcode);
+      var notFoundBarcodes = barcodes.filter(
+        function(barcode) {
+          return !spmnsMap[barcode];
         }
-      });
+      );
 
       if (notFoundBarcodes.length != 0) {
         showError(notFoundBarcodes, errorOpts);
@@ -243,7 +244,7 @@ angular.module('os.biospecimen.specimen')
 
     function resolveSpecimens(labels, barcodes, specimens, errorOpts) {
       if (!labels || labels.length == 0) {
-        return getBarcodeSpecimens(barcodes, specimens, errorOpts);
+        return ensureAllBarcodesExist(barcodes, specimens, errorOpts);
       }
 
       var specimensMap = {};

@@ -17,6 +17,8 @@ angular.module('os.administrative.container.util', ['os.common.box'])
     function getOccupantDisplayName(container, occupant) {
       if (occupant.occuypingEntity == 'specimen' && container.cellDisplayProp == 'SPECIMEN_PPID') {
         return occupant.occupantProps.ppid;
+      } else if (occupant.occuypingEntity == 'specimen' && container.cellDisplayProp == 'SPECIMEN_BARCODE') {
+        return !!occupant.occupantProps.barcode ? occupant.occupantProps.barcode : occupant.occupyingEntityName;
       }
 
       return occupant.occupyingEntityName;

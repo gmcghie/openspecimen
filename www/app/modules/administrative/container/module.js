@@ -25,6 +25,11 @@ angular.module('os.administrative.container',
             deleteOpts: {resource: 'StorageContainer', operations: ['Delete']}
           }
         },
+        resolve: {
+          barcodingEnabled: function(CollectionProtocol) {
+            return CollectionProtocol.getBarcodingEnabled();
+          }
+        },
         parent: 'signed-in'
       })
       .state('container-list', {
@@ -103,10 +108,6 @@ angular.module('os.administrative.container',
         resolve: {
           containerViewState: function(ContainerViewState) {
             return new ContainerViewState();
-          },
-
-          barcodingEnabled: function(CollectionProtocol) {
-            return CollectionProtocol.getBarcodingEnabled();
           }
         },
         abstract: true,

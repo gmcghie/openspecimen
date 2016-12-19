@@ -135,6 +135,15 @@
             </span>
           </div>
         </li>
+
+        <li class="item">
+          <strong class="key key-sm" translate="container.cell_display_prop">Display in Map</strong>
+          <span class="value value-md" ng-switch="ctx.container.cellDisplayProp">
+            <span ng-switch-when="SPECIMEN_BARCODE">{{'container.cell_display_props.SPECIMEN_BARCODE' | translate}}</span>
+            <span ng-switch-when="SPECIMEN_PPID">{{'container.cell_display_props.SPECIMEN_PPID' | translate}}</span>
+            <span ng-switch-default>{{'container.cell_display_props.SPECIMEN_LABEL' | translate}}</span>
+          </span>
+        </li>
       </ul>
     </div>
     <div class="col-xs-6" ng-if="!ctx.container.storageLocation.name && ctx.container.storedSpecimens > 0">

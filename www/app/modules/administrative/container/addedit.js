@@ -1,6 +1,6 @@
 angular.module('os.administrative.container.addedit', ['os.administrative.models'])
   .controller('ContainerAddEditCtrl', function(
-    $scope, $state, $stateParams, $q, container, containerType,
+    $scope, $state, $stateParams, $q, container, containerType, barcodingEnabled,
     Container, ContainerType, CollectionProtocol, PvManager, Util, Alerts) {
 
     var allSpecimenTypes = undefined;
@@ -58,6 +58,7 @@ angular.module('os.administrative.container.addedit', ['os.administrative.models
       setContainerTypeProps(containerType);
 
       watchParentContainer();
+      $scope.barcodingEnabled = barcodingEnabled;
     };
 
     function watchParentContainer() {

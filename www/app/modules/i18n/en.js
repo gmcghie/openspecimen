@@ -176,7 +176,7 @@
     "store_all_aliquots_in_same_container": "Store all Aliquots in same Container",
     "visit_name_fmt": "Visit Name Format",
     "manual_enabled_for": "User Inputs Allowed For",
-    "bulk_part_reg_allowed": "Bulk Participant Registration Allowed",
+    "bulk_part_reg_allowed": "Bulk Registrations",
     "pre_print_spmn_labels": "Pre-print Labels",
     "ppids": "Participant Protocol IDs",
     "visit_names": "Visit Names",

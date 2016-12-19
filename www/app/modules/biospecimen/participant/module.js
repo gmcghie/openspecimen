@@ -28,6 +28,7 @@ angular.module('os.biospecimen.participant',
         controller: function($scope, cp, cpViewCtx) {
           $scope.cp = cp;
           $scope.cpViewCtx = cpViewCtx;
+          cpViewCtx.codingEnabled = $scope.global.appProps.cp_coding_enabled;
 
           var sites = cp.cpSites.map(function(cpSite) { return cpSite.siteName; });
           $scope.partRegOpts =        {cp: cp.shortTitle, sites: sites, resource: 'ParticipantPhi', operations: ['Create']};

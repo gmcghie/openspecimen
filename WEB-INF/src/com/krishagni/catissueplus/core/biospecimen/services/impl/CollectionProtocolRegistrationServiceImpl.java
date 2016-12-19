@@ -155,12 +155,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			Date regDate = Calendar.getInstance().getTime();
 
 			List<CollectionProtocolRegistrationDetail> registrations = new ArrayList<>();
-			boolean checkPermission = true;
 			for (int i = 0; i < detail.getRegCount(); i++) {
-				registrations.add(registerAndCreateVisits(detail, regDate, checkPermission));
-				if (i == 0) {
-					checkPermission = false;
-				}
+				registrations.add(registerAndCreateVisits(detail, regDate, i == 0));
 			}
 
 			return ResponseEvent.response(registrations);
@@ -484,26 +480,24 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 
 	private CollectionProtocolRegistrationDetail saveOrUpdateRegistration(
 			CollectionProtocolRegistrationDetail input,
-			CollectionProtocolRegistration existing ,
+			CollectionProtocolRegistration existing,
 			boolean saveParticipant) {
-		return saveOrUpdateRegistration(input, existing, saveParticipant, true);
-	}
-
-	private CollectionProtocolRegistrationDetail saveOrUpdateRegistration(
-			CollectionProtocolRegistrationDetail input,
-			CollectionProtocolRegistration existing ,
-			boolean saveParticipant,
-			boolean checkPermission) {
 
 		CollectionProtocolRegistration cpr = cprFactory.createCpr(existing, input);
 
-		if (checkPermission) {
-			if (existing == null) {
-				AccessCtrlMgr.getInstance().ensureCreateCprRights(cpr);
-			} else {
-				AccessCtrlMgr.getInstance().ensureUpdateCprRights(cpr);
-			}
+		if (existing == null) {
+			AccessCtrlMgr.getInstance().ensureCreateCprRights(cpr);
+		} else {
+			AccessCtrlMgr.getInstance().ensureUpdateCprRights(cpr);
 		}
+
+		return saveOrUpdateRegistration(cpr, existing, saveParticipant);
+	}
+
+	private CollectionProtocolRegistrationDetail saveOrUpdateRegistration(
+			CollectionProtocolRegistration cpr,
+			CollectionProtocolRegistration existing,
+			boolean saveParticipant) {
 		
 		OpenSpecimenException ose = new OpenSpecimenException(ErrorType.USER_ERROR);
 		ensureValidAndUniquePpid(existing, cpr, ose);
@@ -900,13 +894,40 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		//
 		// Register participant
 		//
-		CollectionProtocolRegistrationDetail cpr = saveOrUpdateRegistration(cprDetail, null, true, checkPermission);
+		CollectionProtocolRegistrationDetail cpr = null;
+		if (checkPermission) {
+			cpr = saveOrUpdateRegistration(cprDetail, null, true);
+		} else {
+			cpr = saveOrUpdateRegistration(cprFactory.createCpr(cprDetail), null, true);
+		}
 
 		//
 		// Create pending visits
 		//
-		visitSvc.addVisits(cpr.getId(), bulkRegDetail.getEvents());
-
+		addVisits(cpr.getId(), bulkRegDetail.getEvents(), checkPermission);
 		return cpr;
 	}
+
+	private List<VisitDetail> addVisits(Long cprId, List<CollectionProtocolEventDetail> events, boolean checkPermission) {
+		if (CollectionUtils.isEmpty(events)) {
+			return Collections.emptyList();
+		}
+
+		List<VisitDetail> visits = new ArrayList<>();
+		for (CollectionProtocolEventDetail cpeDetail : events) {
+			VisitDetail visitDetail = new VisitDetail();
+			visitDetail.setCprId(cprId);
+			visitDetail.setEventId(cpeDetail.getId());
+			visitDetail.setEventLabel(cpeDetail.getEventLabel());
+			visitDetail.setSite(cpeDetail.getDefaultSite());
+			visitDetail.setStatus(Visit.VISIT_STATUS_PENDING);
+
+			visits.add(visitSvc.addVisit(visitDetail, checkPermission));
+			checkPermission = false;
+		}
+
+		return visits;
+	}
+
+
 }

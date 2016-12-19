@@ -93,9 +93,9 @@ public class SpecimenKitFactoryImpl implements SpecimenKitFactory {
         kit.setReceivingSite(site);
     }
 
-    private Site getSite(SpecimenKit kit, String siteName, ErrorCode siteReqError, ErrorCode invalidSiteError, OpenSpecimenException ose) {
+    private Site getSite(SpecimenKit kit, String siteName, ErrorCode reqError, ErrorCode invError, OpenSpecimenException ose) {
         if (StringUtils.isBlank(siteName)) {
-            ose.addError(siteReqError);
+            ose.addError(reqError);
             return null;
         }
 
@@ -107,9 +107,10 @@ public class SpecimenKitFactoryImpl implements SpecimenKitFactory {
 
         CollectionProtocol cp = kit.getCollectionProtocol();
         if (cp != null && !cp.getRepositories().contains(site)) {
-            ose.addError(invalidSiteError, siteName);
+            ose.addError(invError, siteName);
             return null;
         }
+
         return site;
     }
 

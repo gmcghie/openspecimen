@@ -6,9 +6,9 @@ import com.krishagni.catissueplus.core.common.events.ResponseEvent;
 
 public interface SpecimenKitService {
 
-    public ResponseEvent<SpecimenKitDetail> getSpecimenKit(RequestEvent<Long> req);
+    ResponseEvent<SpecimenKitDetail> getSpecimenKit(RequestEvent<Long> req);
 
-    public ResponseEvent<SpecimenKitDetail> addSpecimenKit(RequestEvent<SpecimenKitDetail> req);
+    ResponseEvent<SpecimenKitDetail> createSpecimenKit(RequestEvent<SpecimenKitDetail> req);
 
-    public ResponseEvent<SpecimenKitDetail> updateSpecimenKit(RequestEvent<SpecimenKitDetail> req);
+    ResponseEvent<SpecimenKitDetail> updateSpecimenKit(RequestEvent<SpecimenKitDetail> req);
 }

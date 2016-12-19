@@ -20,13 +20,13 @@ import com.krishagni.catissueplus.core.common.events.ResponseEvent;
 public class SpecimenKitsController {
 
     @Autowired
-    private SpecimenKitService specimenKitSvc;
+    private SpecimenKitService kitSvc;
 
     @RequestMapping(method = RequestMethod.GET, value="{id}")
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public SpecimenKitDetail getContainerType(@PathVariable("id") Long kitId) {
-        ResponseEvent<SpecimenKitDetail> resp = specimenKitSvc.getSpecimenKit(getRequest(kitId));
+        ResponseEvent<SpecimenKitDetail> resp = kitSvc.getSpecimenKit(getRequest(kitId));
         resp.throwErrorIfUnsuccessful();
         return resp.getPayload();
     }
@@ -35,7 +35,7 @@ public class SpecimenKitsController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public SpecimenKitDetail addKit(@RequestBody SpecimenKitDetail detail) {
-        ResponseEvent<SpecimenKitDetail> resp = specimenKitSvc.addSpecimenKit(getRequest(detail));
+        ResponseEvent<SpecimenKitDetail> resp = kitSvc.createSpecimenKit(getRequest(detail));
         resp.throwErrorIfUnsuccessful();
         return resp.getPayload();
     }
@@ -45,7 +45,7 @@ public class SpecimenKitsController {
     @ResponseBody
     public SpecimenKitDetail updateKit(@PathVariable("id") Long id, @RequestBody SpecimenKitDetail detail) {
         detail.setId(id);
-        ResponseEvent<SpecimenKitDetail> resp = specimenKitSvc.updateSpecimenKit(getRequest(detail));
+        ResponseEvent<SpecimenKitDetail> resp = kitSvc.updateSpecimenKit(getRequest(detail));
         resp.throwErrorIfUnsuccessful();
         return resp.getPayload();
     }

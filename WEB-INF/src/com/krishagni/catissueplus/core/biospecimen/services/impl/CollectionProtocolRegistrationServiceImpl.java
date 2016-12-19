@@ -150,19 +150,6 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 
 	@Override
 	@PlusTransactional
-	public List<CollectionProtocolRegistration> bulkRegistration(BulkRegistrationsDetail detail) {
-			Date regDate = Calendar.getInstance().getTime();
-
-			List<CollectionProtocolRegistration> registrations = new ArrayList<>();
-			for (int i = 0; i < detail.getRegCount(); i++) {
-				registrations.add(registerAndCreateVisits(detail, regDate, i == 0));
-			}
-
-			return registrations;
-	}
-
-	@Override
-	@PlusTransactional
 	public ResponseEvent<CollectionProtocolRegistrationDetail> updateRegistration(RequestEvent<CollectionProtocolRegistrationDetail> req) {
 		try {
 			CollectionProtocolRegistrationDetail detail = req.getPayload();
@@ -457,6 +444,19 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			return ResponseEvent.serverError(e);
 		}
 	}
+
+	@Override
+	@PlusTransactional
+	public List<CollectionProtocolRegistration> bulkRegistration(BulkRegistrationsDetail detail) {
+		Date regDate = Calendar.getInstance().getTime();
+
+		List<CollectionProtocolRegistration> registrations = new ArrayList<>();
+		for (int i = 0; i < detail.getRegCount(); i++) {
+			registrations.add(registerAndCreateVisits(detail, regDate, i == 0));
+		}
+
+		return registrations;
+	}
 	
 	@Override
 	public String getObjectName() {
@@ -472,7 +472,6 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 
 		return daoFactory.getCprDao().getCprIds(key, value);
 	}
-
 
 	private CollectionProtocolRegistration saveOrUpdateRegistration(
 			CollectionProtocolRegistrationDetail input,

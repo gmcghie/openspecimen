@@ -207,15 +207,6 @@ public class CollectionProtocolRegistrationsController {
 		return resp.getPayload();
 	}
 
-/*	@RequestMapping(method = RequestMethod.POST, value = "/bulk")
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public List<CollectionProtocolRegistrationDetail> bulkRegister(@RequestBody BulkRegistrationsDetail detail) {
-		ResponseEvent<List<CollectionProtocolRegistrationDetail>> resp = cprSvc.bulkRegistration(getRequest(detail));
-		resp.throwErrorIfUnsuccessful();
-		return resp.getPayload();
-	}*/
-	
 	@RequestMapping(method = RequestMethod.PUT, value = "/{id}")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody

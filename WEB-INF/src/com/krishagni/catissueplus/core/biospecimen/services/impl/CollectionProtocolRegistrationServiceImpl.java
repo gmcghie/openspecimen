@@ -139,7 +139,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 	@PlusTransactional
 	public ResponseEvent<CollectionProtocolRegistrationDetail> createRegistration(RequestEvent<CollectionProtocolRegistrationDetail> req) {
 		try {
-			return ResponseEvent.response(saveOrUpdateRegistration(req.getPayload(), null, true));
+			CollectionProtocolRegistration cpr = saveOrUpdateRegistration(req.getPayload(), null, true);
+			return ResponseEvent.response(CollectionProtocolRegistrationDetail.from(cpr, false));
 		} catch (OpenSpecimenException ose) {
 			return ResponseEvent.error(ose);
 		} catch (Exception e) {
@@ -149,22 +150,15 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 
 	@Override
 	@PlusTransactional
-	public ResponseEvent<List<CollectionProtocolRegistrationDetail>> bulkRegistration(RequestEvent<BulkRegistrationsDetail> req) {
-		try {
-			BulkRegistrationsDetail detail = req.getPayload();
+	public List<CollectionProtocolRegistration> bulkRegistration(BulkRegistrationsDetail detail) {
 			Date regDate = Calendar.getInstance().getTime();
 
-			List<CollectionProtocolRegistrationDetail> registrations = new ArrayList<>();
+			List<CollectionProtocolRegistration> registrations = new ArrayList<>();
 			for (int i = 0; i < detail.getRegCount(); i++) {
 				registrations.add(registerAndCreateVisits(detail, regDate, i == 0));
 			}
 
-			return ResponseEvent.response(registrations);
-		} catch (OpenSpecimenException ose) {
-			return ResponseEvent.error(ose);
-		} catch (Exception ex) {
-			return ResponseEvent.serverError(ex);
-		}
+			return registrations;
 	}
 
 	@Override
@@ -173,7 +167,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		try {
 			CollectionProtocolRegistrationDetail detail = req.getPayload();
 			CollectionProtocolRegistration existing = getCpr(detail.getId(), detail.getCpId(), detail.getCpShortTitle(), detail.getPpid());
-			return ResponseEvent.response(saveOrUpdateRegistration(detail, existing, true));
+			CollectionProtocolRegistration cpr = saveOrUpdateRegistration(detail, existing, true);
+			return ResponseEvent.response(CollectionProtocolRegistrationDetail.from(cpr, false));
 		} catch (OpenSpecimenException ose) {
 			return ResponseEvent.error(ose);
 		} catch (Exception e) {
@@ -478,7 +473,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		return daoFactory.getCprDao().getCprIds(key, value);
 	}
 
-	private CollectionProtocolRegistrationDetail saveOrUpdateRegistration(
+
+	private CollectionProtocolRegistration saveOrUpdateRegistration(
 			CollectionProtocolRegistrationDetail input,
 			CollectionProtocolRegistration existing,
 			boolean saveParticipant) {
@@ -494,7 +490,7 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		return saveOrUpdateRegistration(cpr, existing, saveParticipant);
 	}
 
-	private CollectionProtocolRegistrationDetail saveOrUpdateRegistration(
+	private CollectionProtocolRegistration saveOrUpdateRegistration(
 			CollectionProtocolRegistration cpr,
 			CollectionProtocolRegistration existing,
 			boolean saveParticipant) {
@@ -519,7 +515,7 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		
 		cpr.setPpidIfEmpty();
 		daoFactory.getCprDao().saveOrUpdate(cpr);
-		return CollectionProtocolRegistrationDetail.from(cpr, false);		
+		return cpr;
 	}
 
 	private ParticipantRegistrationsList saveOrUpdateRegistrations(ParticipantRegistrationsList input, boolean update) {
@@ -565,7 +561,8 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 				existing = cprMap.get(cprDetail.getCpShortTitle() + "_" + cprDetail.getPpid());
 			}
 
-			cprDetail = saveOrUpdateRegistration(cprDetail, existing, false);
+			CollectionProtocolRegistration cpr = saveOrUpdateRegistration(cprDetail, existing, false);
+			cprDetail = CollectionProtocolRegistrationDetail.from(cpr, false);
 
 			cprDetail.setParticipant(null);
 			registrations.add(cprDetail);
@@ -884,7 +881,7 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 			.collect(Collectors.toList());
 	}
 
-	private CollectionProtocolRegistrationDetail registerAndCreateVisits(BulkRegistrationsDetail bulkRegDetail, Date regDate, boolean checkPermission) {
+	private CollectionProtocolRegistration registerAndCreateVisits(BulkRegistrationsDetail bulkRegDetail, Date regDate, boolean checkPermission) {
 		CollectionProtocolRegistrationDetail cprDetail = new CollectionProtocolRegistrationDetail();
 		cprDetail.setRegistrationDate(regDate);
 		cprDetail.setCpId(bulkRegDetail.getCpId());
@@ -894,7 +891,7 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		//
 		// Register participant
 		//
-		CollectionProtocolRegistrationDetail cpr = null;
+		CollectionProtocolRegistration cpr = null;
 		if (checkPermission) {
 			cpr = saveOrUpdateRegistration(cprDetail, null, true);
 		} else {
@@ -904,16 +901,19 @@ public class CollectionProtocolRegistrationServiceImpl implements CollectionProt
 		//
 		// Create pending visits
 		//
-		addVisits(cpr.getId(), bulkRegDetail.getEvents(), checkPermission);
+		List<Visit> visits = addVisits(cpr.getId(), bulkRegDetail.getEvents(), checkPermission);
+
+		//CollectionProtocolRegistration cpr = daoFactory.getCprDao().getById(cprDetail.getId());
+		cpr.addVisits(visits);
 		return cpr;
 	}
 
-	private List<VisitDetail> addVisits(Long cprId, List<CollectionProtocolEventDetail> events, boolean checkPermission) {
+	private List<Visit> addVisits(Long cprId, List<CollectionProtocolEventDetail> events, boolean checkPermission) {
 		if (CollectionUtils.isEmpty(events)) {
 			return Collections.emptyList();
 		}
 
-		List<VisitDetail> visits = new ArrayList<>();
+		List<Visit> visits = new ArrayList<>();
 		for (CollectionProtocolEventDetail cpeDetail : events) {
 			VisitDetail visitDetail = new VisitDetail();
 			visitDetail.setCprId(cprId);

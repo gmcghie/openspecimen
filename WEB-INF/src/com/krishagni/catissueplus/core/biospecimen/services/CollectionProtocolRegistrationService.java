@@ -4,6 +4,7 @@ package com.krishagni.catissueplus.core.biospecimen.services;
 import java.io.File;
 import java.util.List;
 
+import com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolRegistration;
 import com.krishagni.catissueplus.core.biospecimen.events.BulkRegistrationsDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolRegistrationDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.ConsentDetail;
@@ -24,8 +25,6 @@ public interface CollectionProtocolRegistrationService {
 	public ResponseEvent<CollectionProtocolRegistrationDetail> getRegistration(RequestEvent<RegistrationQueryCriteria> req);
 	
 	public ResponseEvent<CollectionProtocolRegistrationDetail> createRegistration(RequestEvent<CollectionProtocolRegistrationDetail> req);
-
-	public ResponseEvent<List<CollectionProtocolRegistrationDetail>> bulkRegistration(RequestEvent<BulkRegistrationsDetail> req);
 
 	public ResponseEvent<List<DependentEntityDetail>> getDependentEntities(RequestEvent<RegistrationQueryCriteria> req);
 	
@@ -57,5 +56,12 @@ public interface CollectionProtocolRegistrationService {
 	public ResponseEvent<ConsentDetail> saveConsents(RequestEvent<ConsentDetail> req);
 
 	public ResponseEvent<ConsentDetail> getConsents(RequestEvent<RegistrationQueryCriteria> req);
+
+
+	//
+	// Internal APIs
+	//
+
+	public List<CollectionProtocolRegistration> bulkRegistration(BulkRegistrationsDetail bulkRegDetail);
 }
 

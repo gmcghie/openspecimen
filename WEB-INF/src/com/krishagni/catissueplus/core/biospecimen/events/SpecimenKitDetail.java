@@ -120,6 +120,10 @@ public class SpecimenKitDetail {
     }
 
     public static SpecimenKitDetail from(SpecimenKit kit) {
+        if (kit == null) {
+            return null;
+        }
+
         SpecimenKitDetail detail = new SpecimenKitDetail();
         detail.setId(kit.getId());
         detail.setCpId(kit.getCollectionProtocol().getId());

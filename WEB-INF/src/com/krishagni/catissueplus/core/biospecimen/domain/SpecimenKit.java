@@ -102,7 +102,5 @@ public class SpecimenKit extends BaseEntity {
         setSender(kit.getSender());
         setComments(kit.getComments());
         setActivityStatus(kit.getActivityStatus());
-
-        CollectionUpdater.update(getSpecimens(), kit.getSpecimens());
     }
 }

@@ -1,6 +1,7 @@
 
 package com.krishagni.catissueplus.core.biospecimen.events;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -185,4 +186,14 @@ public class CollectionProtocolRegistrationDetail extends AttributeModifiedSuppo
 		detail.setDerivativeLabelFmt(cp.getDerivativeLabelFormat());
 		return detail;
 	}
+
+	public static List<CollectionProtocolRegistrationDetail> from(List<CollectionProtocolRegistration> cprs, boolean excludePhi) {
+		List<CollectionProtocolRegistrationDetail> cprDetails = new ArrayList<>();
+		for (CollectionProtocolRegistration cpr: cprs) {
+			cprDetails.add(from(cpr, excludePhi));
+		}
+
+		return cprDetails;
+	}
 }
+

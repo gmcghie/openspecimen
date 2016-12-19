@@ -1,11 +1,5 @@
 package com.krishagni.catissueplus.core.biospecimen.domain.factory.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.krishagni.catissueplus.core.administrative.domain.Site;
@@ -13,15 +7,12 @@ import com.krishagni.catissueplus.core.administrative.domain.User;
 import com.krishagni.catissueplus.core.administrative.domain.factory.SiteErrorCode;
 import com.krishagni.catissueplus.core.administrative.domain.factory.UserErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol;
-import com.krishagni.catissueplus.core.biospecimen.domain.Specimen;
 import com.krishagni.catissueplus.core.biospecimen.domain.SpecimenKit;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.CpErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.CprErrorCode;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.SpecimenKitFactory;
-import com.krishagni.catissueplus.core.biospecimen.events.SpecimenInfo;
 import com.krishagni.catissueplus.core.biospecimen.events.SpecimenKitDetail;
 import com.krishagni.catissueplus.core.biospecimen.repository.DaoFactory;
-import com.krishagni.catissueplus.core.biospecimen.repository.SpecimenListCriteria;
 import com.krishagni.catissueplus.core.common.errors.ActivityStatusErrorCode;
 import com.krishagni.catissueplus.core.common.errors.ErrorCode;
 import com.krishagni.catissueplus.core.common.errors.ErrorType;
@@ -48,7 +39,6 @@ public class SpecimenKitFactoryImpl implements SpecimenKitFactory {
         setReceivingSite(detail, kit, ose);
         setSendingDate(detail, kit, ose);
         setSender(detail, kit, ose);
-        setSpecimens(detail, kit, ose);
         setComments(detail, kit, ose);
         setActivityStatus(detail, kit, ose);
 
@@ -116,26 +106,6 @@ public class SpecimenKitFactoryImpl implements SpecimenKitFactory {
 
     private void setSendingDate(SpecimenKitDetail detail, SpecimenKit kit, OpenSpecimenException ose) {
         kit.setSendingDate(detail.getSendingDate());
-    }
-
-    private void setSpecimens(SpecimenKitDetail detail, SpecimenKit kit, OpenSpecimenException ose) {
-        List<Long> ids = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(detail.getSpecimens())) {
-            ids = detail.getSpecimens().stream().map(SpecimenInfo::getId).collect(Collectors.toList());
-        }
-
-        if (CollectionUtils.isEmpty(ids)) {
-            ose.addError(SpecimenKitErrorCode.SPECIMENS_REQUIRED);
-            return;
-        }
-
-        SpecimenListCriteria crit = new SpecimenListCriteria().ids(ids);
-        List<Specimen> specimens = daoFactory.getSpecimenDao().getSpecimens(crit);
-        if (specimens.size() != ids.size()) {
-            ose.addError(SpecimenKitErrorCode.INVALID_SPECIMENS);
-        } else {
-            kit.setSpecimens(new HashSet<>(specimens));
-        }
     }
 
     private void setSender(SpecimenKitDetail detail, SpecimenKit kit, OpenSpecimenException ose) {

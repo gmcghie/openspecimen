@@ -340,6 +340,7 @@
   <bean id="specimenKitSvc" class="com.krishagni.catissueplus.core.biospecimen.services.impl.SpecimenKitServiceImpl">
     <property name="daoFactory" ref="biospecimenDaoFactory"/>
     <property name="specimenKitFactory" ref="specimenKitFactory"/>
+    <property name="cprSvc" ref="cprSvc"/>
   </bean>
   
   <bean id="formDataMgr" class="edu.common.dynamicextensions.napi.impl.FormDataManagerImpl">

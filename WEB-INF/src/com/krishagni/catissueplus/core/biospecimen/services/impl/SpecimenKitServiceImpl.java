@@ -1,10 +1,20 @@
 package com.krishagni.catissueplus.core.biospecimen.services.impl;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolRegistration;
+import com.krishagni.catissueplus.core.biospecimen.domain.Specimen;
 import com.krishagni.catissueplus.core.biospecimen.domain.SpecimenKit;
+import com.krishagni.catissueplus.core.biospecimen.domain.Visit;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.SpecimenKitFactory;
 import com.krishagni.catissueplus.core.biospecimen.domain.factory.impl.SpecimenKitErrorCode;
+import com.krishagni.catissueplus.core.biospecimen.events.BulkRegistrationAndKitDetail;
+import com.krishagni.catissueplus.core.biospecimen.events.CprsAndSpecimenKitDetail;
 import com.krishagni.catissueplus.core.biospecimen.events.SpecimenKitDetail;
 import com.krishagni.catissueplus.core.biospecimen.repository.DaoFactory;
+import com.krishagni.catissueplus.core.biospecimen.services.CollectionProtocolRegistrationService;
 import com.krishagni.catissueplus.core.biospecimen.services.SpecimenKitService;
 import com.krishagni.catissueplus.core.common.PlusTransactional;
 import com.krishagni.catissueplus.core.common.errors.OpenSpecimenException;
@@ -17,12 +27,18 @@ public class SpecimenKitServiceImpl implements SpecimenKitService {
 
     private SpecimenKitFactory specimenKitFactory;
 
+    private CollectionProtocolRegistrationService cprSvc;
+
     public void setDaoFactory(DaoFactory daoFactory) {
         this.daoFactory = daoFactory;
     }
 
     public void setSpecimenKitFactory(SpecimenKitFactory specimenKitFactory) {
         this.specimenKitFactory = specimenKitFactory;
+    }
+
+    public void setCprSvc(CollectionProtocolRegistrationService cprSvc) {
+        this.cprSvc = cprSvc;
     }
 
     @Override
@@ -39,11 +55,12 @@ public class SpecimenKitServiceImpl implements SpecimenKitService {
 
     @Override
     @PlusTransactional
-    public ResponseEvent<SpecimenKitDetail> createSpecimenKit(RequestEvent<SpecimenKitDetail> req) {
+    public ResponseEvent<CprsAndSpecimenKitDetail> createSpecimenKit(RequestEvent<BulkRegistrationAndKitDetail> req) {
         try {
-            SpecimenKit kit = specimenKitFactory.createSpecimenKit(req.getPayload());
-            daoFactory.getSpecimenKitDao().saveOrUpdate(kit);
-            return ResponseEvent.response(SpecimenKitDetail.from(kit));
+            BulkRegistrationAndKitDetail detail = req.getPayload();
+            List<CollectionProtocolRegistration> cprs = cprSvc.bulkRegistration(detail.getBulkRegDetail());
+            SpecimenKit kit = createSpecimenKit(detail.getKitDetail(), cprs);
+            return ResponseEvent.response(CprsAndSpecimenKitDetail.from(cprs, kit));
         } catch (OpenSpecimenException ose) {
             return ResponseEvent.error(ose);
         } catch (Exception e) {
@@ -77,6 +94,25 @@ public class SpecimenKitServiceImpl implements SpecimenKitService {
             throw OpenSpecimenException.userError(SpecimenKitErrorCode.NOT_FOUND, kitId);
         }
 
+        return kit;
+    }
+
+
+    private SpecimenKit createSpecimenKit(SpecimenKitDetail detail, List<CollectionProtocolRegistration> cprs) {
+        if (detail == null) {
+            return null;
+        }
+
+        SpecimenKit kit = specimenKitFactory.createSpecimenKit(detail);
+        Set<Specimen> specimens = new HashSet<>();
+        for (CollectionProtocolRegistration cpr: cprs) {
+            for (Visit visit: cpr.getVisits()) {
+                specimens.addAll(visit.getSpecimens());
+            }
+        }
+
+        kit.setSpecimens(specimens);
+        daoFactory.getSpecimenKitDao().saveOrUpdate(kit);
         return kit;
     }
 }

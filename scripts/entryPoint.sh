@@ -12,16 +12,16 @@ Initialization file.  Delete to re-initialize.
 EOF
 
   if [ "true"="${USE_SSL}" ] ; then
-    cp -v /sessions/catalina.sh /usr/local/tomcat/bin/
-    sed -i "s#§§keystorepath#${TOMCAT_KEYSTORE_PATH}#g" /usr/local/tomcat/bin/catalina.sh
+    cp -v "${DOCKER_MOUNT_PATH}catalina.sh" /usr/local/tomcat/bin/
+    sed -i "s#§§keystorepath#${DOCKER_MOUNT_PATH}${TOMCAT_KEYSTORE_FILENAME}#g" /usr/local/tomcat/bin/catalina.sh
     sed -i "s#§§keystorepassword#${TOMCAT_KEYSTORE_PASSWORD}#g" /usr/local/tomcat/bin/catalina.sh
-    sed -i "s#§§truststorepath#${TOMCAT_TRUSTSTORE_PATH}#g" /usr/local/tomcat/bin/catalina.sh
+    sed -i "s#§§truststorepath#${DOCKER_MOUNT_PATH}${TOMCAT_TRUSTSTORE_FILENAME}#g" /usr/local/tomcat/bin/catalina.sh
     sed -i "s#§§truststorepassword#${TOMCAT_TRUSTSTORE_PASSWORD}#g" /usr/local/tomcat/bin/catalina.sh
 
-    cp -v /sessions/server.xml /usr/local/tomcat/conf/
-    sed -i "s#§§certpath#${TOMCAT_CERT_PATH}#" /usr/local/tomcat/conf/server.xml
-    sed -i "s#§§keypath#${TOMCAT_CERT_KEY_PATH}#" /usr/local/tomcat/conf/server.xml
-    sed -i "s#§§certchainpath#${TOMCAT_CERT_CHAIN_PATH}#" /usr/local/tomcat/conf/server.xml
+    cp -v "${DOCKER_MOUNT_PATH}server.xml" /usr/local/tomcat/conf/
+    sed -i "s#§§certpath#${DOCKER_MOUNT_PATH}${TOMCAT_CERT_FILENAME}#" /usr/local/tomcat/conf/server.xml
+    sed -i "s#§§keypath#${DOCKER_MOUNT_PATH}${TOMCAT_CERT_KEY_FILENAME}#" /usr/local/tomcat/conf/server.xml
+    sed -i "s#§§certchainpath#${DOCKER_MOUNT_PATH}${TOMCAT_CERT_CHAIN_FILENAME}#" /usr/local/tomcat/conf/server.xml
 
     slString='?verifyServerCertificate=true\&amp;useSSL=true\&amp;requireSSL=true'
   else

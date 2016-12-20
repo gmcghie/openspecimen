@@ -291,6 +291,13 @@ task create_war(type: War) {
     into '/ngweb/external/de'
   }
 
+  from ('../os-extensions/lib') {
+    include 'DynamicExtensions.jar'
+    include 'openspecimen.jar'
+
+    into '/osPlugins'
+  }
+  
   manifest {
     attributes(
       "Implementation-Title": archivesBaseName,

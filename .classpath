@@ -109,7 +109,7 @@
 	<classpathentry kind="lib" path="WEB-INF/lib/mmtxProject.jar"/>
 	<classpathentry kind="lib" path="WEB-INF/lib/mockito-all-1.9.5.jar"/>
 	<classpathentry kind="lib" path="WEB-INF/lib/mof.jar"/>
-	<classpathentry kind="lib" path="WEB-INF/lib/mysql-connector-java-5.0.8-bin.jar"/>
+	<classpathentry kind="lib" path="WEB-INF/lib/mysql-connector-java-5.1.40-bin.jar"/>
 	<classpathentry kind="lib" path="WEB-INF/lib/ojdbc14.jar"/>
 	<classpathentry kind="lib" path="WEB-INF/lib/ontotext.jar"/>
 	<classpathentry kind="lib" path="WEB-INF/lib/opencsv-1.8.jar"/>

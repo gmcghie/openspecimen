@@ -23,7 +23,7 @@ EOF
     sed -i "s#§§keypath#${DOCKER_MOUNT_PATH}${TOMCAT_CERT_KEY_FILENAME}#" /usr/local/tomcat/conf/server.xml
     sed -i "s#§§certchainpath#${DOCKER_MOUNT_PATH}${TOMCAT_CERT_CHAIN_FILENAME}#" /usr/local/tomcat/conf/server.xml
 
-    slString='?verifyServerCertificate=true\&amp;useSSL=true\&amp;requireSSL=true'
+    sslString='?verifyServerCertificate=false\&amp;useSSL=true\&amp;requireSSL=true'
   else
     sslString=''
   fi

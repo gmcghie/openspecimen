@@ -15,14 +15,18 @@ angular.module('os.administrative.container.util', ['os.common.box'])
     }
 
     function getOccupantDisplayName(container, occupant) {
-      if (occupant.occuypingEntity == 'specimen' && container.cellDisplayProp == 'SPECIMEN_PPID') {
-        return occupant.occupantProps.ppid;
+      if (occupant.occuypingEntity == 'specimen') {
+        if (container.cellDisplayProp == 'SPECIMEN_PPID') {
+          return occupant.occupantProps.ppid;
+        } else if (container.cellDisplayProp == 'SPECIMEN_BARCODE' && !!occupant.occupantProps.barcode) {
+          return occupant.occupantProps.barcode;
+        }
       }
 
       return occupant.occupyingEntityName;
     }
 
-    function getOpts(container, allowClicks, showAddMarker) {
+    function getOpts(container, allowClicks, showAddMarker, useBarcode) {
       return {
         box: {
           instance             : container,
@@ -38,6 +42,10 @@ angular.module('os.administrative.container.util', ['os.common.box'])
 
         occupants: [],
         occupantName: function(occupant) {
+          if (!!useBarcode && occupant.occuypingEntity == 'specimen') {
+            return occupant.occupantProps.barcode || '';
+          }
+
           return occupant.occupyingEntityName;
         },
         occupantDisplayHtml: function(occupant) {
@@ -70,11 +78,13 @@ angular.module('os.administrative.container.util', ['os.common.box'])
 
       getOpts: getOpts,
 
-      assignPositions: function(container, occupancyMap, inputLabels, vacateOccupants) {
-        var opts = getOpts(container, false);
+      assignPositions: function(container, occupancyMap, inputLabels, userOpts) {
+        userOpts = userOpts || {};
+
+        var opts = getOpts(container, false, false, userOpts.useBarcode);
         opts.occupants = occupancyMap;
 
-        var result = BoxLayoutUtil.assignCells(opts, inputLabels, vacateOccupants);
+        var result = BoxLayoutUtil.assignCells(opts, inputLabels, userOpts.vacateOccupants);
         return {map: result.occupants, noFreeLocs: result.noFreeLocs};
       }
     };

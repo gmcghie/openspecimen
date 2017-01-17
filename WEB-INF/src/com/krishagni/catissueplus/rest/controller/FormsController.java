@@ -72,10 +72,14 @@ public class FormsController {
 			int maxResults,
 			
 			@RequestParam(value="formType", required=false, defaultValue="DataEntry")
-			String formType) {
+			String formType,
+
+			@RequestParam(value="excludeSysForms", required=false)
+			Boolean excludeSysForms) {
 		FormListCriteria crit = new FormListCriteria()
 				.query(name)
 				.formType(formType)
+				.excludeSysForm(excludeSysForms)
 				.startAt(startAt)
 				.maxResults(maxResults);
 		
@@ -89,11 +93,15 @@ public class FormsController {
 	@ResponseBody
 	public Map<String, Long> getFormsCount(
 			@RequestParam(value = "name", required= false, defaultValue = "")
-			String name) {
+			String name,
+
+			@RequestParam(value="excludeSysForms", required=false)
+			Boolean excludeSysForms) {
 		
 		FormListCriteria crit = new FormListCriteria()
 				.query(name)
-				.formType("DataEntry");
+				.formType("DataEntry")
+				.excludeSysForm(excludeSysForms);
 		
 		ResponseEvent<Long> resp = formSvc.getFormsCount(getRequest(crit));
 		resp.throwErrorIfUnsuccessful();

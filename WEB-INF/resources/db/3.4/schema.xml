@@ -504,11 +504,18 @@
     </addColumn>
   </changeSet>
 
-  <changeSet author="vgaikwad" id="Flag to specify whether bulk registration of participants is allowed">
-    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
-      <column name="BULK_PART_REG_ALLOWED" type="${boolean.type}" defaultValueBoolean="0">
-        <constraints nullable="false"/>
-      </column>
-    </addColumn>
+  <changeSet author="vlonushte" id="Custom field forms are non-system forms">
+    <sql>
+      update 
+        catissue_form_context
+      set 
+        is_sys_form = 0
+      where
+        entity_type in (
+          'CollectionProtocolExtension', 'ParticipantExtension', 'VisitExtension',
+          'SpecimenExtension', 'SiteExtension'
+        ) and
+        deleted_on is null;
+    </sql>
   </changeSet>
 </databaseChangeLog>

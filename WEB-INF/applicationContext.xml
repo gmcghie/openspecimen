@@ -191,8 +191,9 @@
   <bean id="specimenFactory" class="com.krishagni.catissueplus.core.biospecimen.domain.factory.impl.SpecimenFactoryImpl">
     <property name="daoFactory" ref="biospecimenDaoFactory" />
     <property name="specimenResolver" ref="specimenResolver"/>
+    <property name="containerSvc" ref="storageContainerSvc"/>
   </bean>
-  
+
   <bean id="visitFactory" class="com.krishagni.catissueplus.core.biospecimen.domain.factory.impl.VisitFactoryImpl">
     <property name="daoFactory" ref="biospecimenDaoFactory"/>
     <property name="defaultNameTmpl" value="%PPI%_%EVENT_LABEL%_%SYS_UID%"/>
@@ -229,6 +230,7 @@
     <property name="cfgSvc" ref="cfgSvc"/>
     <property name="labelGenerator" ref="ppidGenerator"/>
     <property name="anonymizer" ref="participantAnonymizer"/>
+    <property name="specimenKitSvc" ref="specimenKitSvc"/>
   </bean>
   
   <bean id="ppidTokensRegistrar" class="com.krishagni.catissueplus.core.common.domain.DefaultLabelTmplTokenRegistrar">
@@ -331,6 +333,17 @@
   <bean id="specimenListSvc" class="com.krishagni.catissueplus.core.biospecimen.services.impl.SpecimenListServiceImpl">
     <property name="daoFactory" ref="biospecimenDaoFactory"/>
     <property name="specimenListFactory" ref="specimenListFactory"/>
+  </bean>
+
+  <bean id="specimenKitFactory" class="com.krishagni.catissueplus.core.biospecimen.domain.factory.impl.SpecimenKitFactoryImpl">
+    <property name="daoFactory" ref="biospecimenDaoFactory"/>
+  </bean>
+
+  <bean id="specimenKitSvc" class="com.krishagni.catissueplus.core.biospecimen.services.impl.SpecimenKitServiceImpl">
+    <property name="daoFactory" ref="biospecimenDaoFactory"/>
+    <property name="specimenKitFactory" ref="specimenKitFactory"/>
+    <property name="querySvc" ref="querySvc"/>
+    <property name="deDaoFactory" ref="deDaoFactory"/>
   </bean>
   
   <bean id="formDataMgr" class="edu.common.dynamicextensions.napi.impl.FormDataManagerImpl">
@@ -532,6 +545,13 @@
   
   <bean id="commonSvc" class="com.krishagni.catissueplus.core.common.service.impl.CommonServiceImpl">
     <property name="daoFactory" ref="biospecimenDaoFactory"/>
+  </bean>
+  
+  <bean id="consentStmtSvc" class="com.krishagni.catissueplus.core.biospecimen.services.impl.ConsentStatementServiceImpl">
+    <property name="daoFactory" ref="biospecimenDaoFactory"/>
+    <property name="consentStatementFactory">
+      <bean class="com.krishagni.catissueplus.core.biospecimen.domain.factory.impl.ConsentStatementFactoryImpl"/>
+    </property>
   </bean>
   
   <bean id="messageSource" class="com.krishagni.catissueplus.core.common.WildcardReloadableResourceBundle">
@@ -1004,6 +1024,7 @@
         <ref bean="distributionProtocolService"/>
         <ref bean="distributionOrderService"/>
         <ref bean="shipmentSvc"/>
+        <ref bean="specimenKitSvc"/>
       </list>
     </property>
   </bean>

@@ -53,6 +53,8 @@ public interface DaoFactory {
 
 	public SpecimenListDao getSpecimenListDao();
 
+	public SpecimenKitDao getSpecimenKitDao();
+
 	public PermissibleValueDao getPermissibleValueDao();
 	
 	public ScheduledJobDao getScheduledJobDao();
@@ -76,4 +78,6 @@ public interface DaoFactory {
 	public CpReportSettingsDao getCpReportSettingsDao();
 	
 	public UnhandledExceptionDao getUnhandledExceptionDao();
+	
+	ConsentStatementDao getConsentStatementDao();
 } 

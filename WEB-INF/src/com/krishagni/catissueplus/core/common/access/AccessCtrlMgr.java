@@ -38,6 +38,7 @@ import com.krishagni.catissueplus.core.common.events.Resource;
 import com.krishagni.catissueplus.core.common.util.AuthUtil;
 import com.krishagni.catissueplus.core.common.util.ConfigUtil;
 import com.krishagni.catissueplus.core.common.util.Utility;
+import com.krishagni.catissueplus.core.importer.services.impl.ImporterContextHolder;
 import com.krishagni.rbac.common.errors.RbacErrorCode;
 import com.krishagni.rbac.domain.Subject;
 import com.krishagni.rbac.domain.SubjectAccess;
@@ -81,16 +82,19 @@ public class AccessCtrlMgr {
 	//////////////////////////////////////////////////////////////////////////////////////
 	public void ensureCreateUserRights(User user) {
 		ensureUserObjectRights(user, Operation.CREATE);
+		ensureUserImportRights(user);
 	}
 
 	public void ensureUpdateUserRights(User user) {
 		ensureUserObjectRights(user, Operation.UPDATE);
+		ensureUserImportRights(user);
 	}
 
 	public void ensureDeleteUserRights(User user) {
 		ensureUserObjectRights(user, Operation.DELETE);
+		ensureUserImportRights(user);
 	}
-	
+
 	public void ensureCreateUpdateUserRolesRights(User user, Site roleSite) {
 		if (AuthUtil.isAdmin()) {
 			return;
@@ -111,6 +115,8 @@ public class AccessCtrlMgr {
 		if (CollectionUtils.intersection(currentUserSites, updateReqSites).isEmpty()) {
 			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
 		}
+
+		ensureUserImportRights(user);
 	}
 
 	private void ensureUserObjectRights(User user, Operation op) {
@@ -124,6 +130,12 @@ public class AccessCtrlMgr {
 
 		if (!canUserPerformOp(AuthUtil.getCurrentUser().getId(), Resource.USER, new Operation[] {op})) {
 			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
+		}
+	}
+
+	private void ensureUserImportRights(User user) {
+		if (isImportOp()) {
+			ensureUserObjectRights(user, Operation.BULK_IMPORT);
 		}
 	}
 	
@@ -421,12 +433,34 @@ public class AccessCtrlMgr {
 		throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
 	}
 
+	public List<CollectionProtocolRegistration> getAccessibleCprs(Collection<CollectionProtocolRegistration> cprs) {
+		return getAccessibleCprs(cprs, Operation.READ);
+	}
+
+	public List<CollectionProtocolRegistration> getAccessibleCprs(Collection<CollectionProtocolRegistration> cprs, Operation op) {
+		return cprs.stream().filter(cpr -> {
+				try {
+					ensureCprObjectRights(cpr, op);
+					return true;
+				} catch (OpenSpecimenException e) {
+					return false;
+				}
+			}
+		).collect(Collectors.toList());
+	}
+
 	public boolean ensureCreateCprRights(Long cprId) {
 		return ensureCprObjectRights(cprId, Operation.CREATE);
 	}
 
 	public boolean ensureCreateCprRights(CollectionProtocolRegistration cpr) {
-		return ensureCprObjectRights(cpr, Operation.CREATE);
+		boolean allowed = ensureCprObjectRights(cpr, Operation.CREATE);
+
+		if (allowed && isImportOp()) {
+			allowed = ensureCprImportRights(cpr);
+		}
+
+		return allowed;
 	}
 
 	public boolean ensureReadCprRights(Long cprId) {
@@ -442,7 +476,13 @@ public class AccessCtrlMgr {
 	}
 
 	public boolean ensureUpdateCprRights(CollectionProtocolRegistration cpr) {
-		return ensureCprObjectRights(cpr, Operation.UPDATE);
+		boolean allowed = ensureCprObjectRights(cpr, Operation.UPDATE);
+
+		if (allowed && isImportOp()) {
+			allowed = ensureCprImportRights(cpr);
+		}
+
+		return allowed;
 	}
 
 	public void ensureDeleteCprRights(Long cprId) {
@@ -450,7 +490,12 @@ public class AccessCtrlMgr {
 	}
 
 	public boolean ensureDeleteCprRights(CollectionProtocolRegistration cpr) {
-		return ensureCprObjectRights(cpr, Operation.DELETE);
+		boolean allowed = ensureCprObjectRights(cpr, Operation.DELETE);
+		if (allowed && isImportOp()) {
+			allowed = ensureCprImportRights(cpr);
+		}
+
+		return allowed;
 	}
 
 	private boolean ensureCprObjectRights(Long cprId, Operation op) {
@@ -459,7 +504,12 @@ public class AccessCtrlMgr {
 			throw OpenSpecimenException.userError(CprErrorCode.NOT_FOUND);
 		}
 
-		return ensureCprObjectRights(cpr, op);
+		boolean allowed = ensureCprObjectRights(cpr, op);
+		if (allowed && op != op.READ && isImportOp()) {
+			allowed = ensureCprImportRights(cpr);
+		}
+
+		return allowed;
 	}
 
 	private boolean ensureCprObjectRights(CollectionProtocolRegistration cpr, Operation op) {
@@ -504,6 +554,10 @@ public class AccessCtrlMgr {
 		return phiAccess;
 	}
 
+	private boolean ensureCprImportRights(CollectionProtocolRegistration cpr) {
+		return ensureCprObjectRights(cpr, Operation.BULK_IMPORT);
+	}
+
 	public boolean canCreateUpdateParticipant() {
 		return canUserPerformOp(Resource.PARTICIPANT, new Operation[] {Operation.CREATE, Operation.UPDATE});
 	}
@@ -519,6 +573,7 @@ public class AccessCtrlMgr {
 
 	public void ensureCreateOrUpdateVisitRights(Visit visit) {
 		ensureVisitAndSpecimenObjectRights(visit.getRegistration(), Operation.UPDATE, visit.hasPhiFields());
+		ensureVisitAndSpecimenImportRights(visit.getRegistration());
 	}
 
 	public boolean ensureReadVisitRights(Long visitId) {
@@ -543,6 +598,7 @@ public class AccessCtrlMgr {
 
 	public void ensureDeleteVisitRights(Visit visit) {
 		ensureVisitAndSpecimenObjectRights(visit.getRegistration(), Operation.DELETE, false);
+		ensureVisitAndSpecimenImportRights(visit.getRegistration());
 	}
 	
 	public void ensureCreateOrUpdateSpecimenRights(Long specimenId, boolean checkPhiAccess) {
@@ -555,6 +611,7 @@ public class AccessCtrlMgr {
 
 	public void ensureCreateOrUpdateSpecimenRights(Specimen specimen, boolean checkPhiAccess) {
 		ensureVisitAndSpecimenObjectRights(specimen.getRegistration(), Operation.UPDATE, checkPhiAccess);
+		ensureVisitAndSpecimenImportRights(specimen.getRegistration());
 	}
 
 	public boolean ensureReadSpecimenRights(Long specimenId) {
@@ -579,6 +636,7 @@ public class AccessCtrlMgr {
 
 	public void ensureDeleteSpecimenRights(Specimen specimen) {
 		ensureVisitAndSpecimenObjectRights(specimen.getRegistration(), Operation.DELETE, false);
+		ensureVisitAndSpecimenImportRights(specimen.getRegistration());
 	}
 
 	public List<Pair<Long, Long>> getReadAccessSpecimenSiteCps() {
@@ -620,7 +678,13 @@ public class AccessCtrlMgr {
 			throw OpenSpecimenException.userError(VisitErrorCode.NOT_FOUND);
 		}
 
-		return ensureVisitObjectRights(visit, op, checkPhiAccess);
+		boolean phiAccess = ensureVisitObjectRights(visit, op, checkPhiAccess);
+
+		if (op != Operation.READ) {
+			ensureVisitAndSpecimenImportRights(visit.getRegistration());
+		}
+
+		return phiAccess;
 	}
 
 	private boolean ensureVisitObjectRights(Visit visit, Operation op, boolean checkPhiAccess) {
@@ -633,7 +697,13 @@ public class AccessCtrlMgr {
 			throw OpenSpecimenException.userError(SpecimenErrorCode.NOT_FOUND, specimenId);
 		}
 
-		return ensureVisitAndSpecimenObjectRights(specimen.getRegistration(), op, checkPhiAccess);
+		boolean phiAccess = ensureVisitAndSpecimenObjectRights(specimen.getRegistration(), op, checkPhiAccess);
+
+		if (op != Operation.READ) {
+			ensureVisitAndSpecimenImportRights(specimen.getRegistration());
+		}
+
+		return phiAccess;
 	}
 
 	private boolean ensureVisitAndSpecimenObjectRights(CollectionProtocolRegistration cpr, Operation op, boolean checkPhiAccess) {
@@ -650,6 +720,12 @@ public class AccessCtrlMgr {
 
 		ensureVisitAndSpecimenObjectRights(cpr, Resource.VISIT_N_SPECIMEN, ops);
 		return checkPhiAccess ? ensurePhiRights(cpr, op) : false;
+	}
+
+	private void ensureVisitAndSpecimenImportRights(CollectionProtocolRegistration registration) {
+		if (isImportOp()) {
+			ensureVisitAndSpecimenObjectRights(registration, Operation.BULK_IMPORT, false);
+		}
 	}
 
 	private Set<Pair<Long, Long>> getVisitAndSpecimenSiteCps(Long cpId, String[] ops) {
@@ -695,6 +771,7 @@ public class AccessCtrlMgr {
 
 	public void ensureCreateContainerRights(StorageContainer container) {
 		ensureStorageContainerObjectRights(container, Operation.CREATE);
+		ensureStorageContainerImportRights(container);
 	}
 
 	public void ensureReadContainerRights(StorageContainer container) {
@@ -729,10 +806,12 @@ public class AccessCtrlMgr {
 
 	public void ensureUpdateContainerRights(StorageContainer container) {
 		ensureStorageContainerObjectRights(container, Operation.UPDATE);
+		ensureStorageContainerImportRights(container);
 	}
 
 	public void ensureDeleteContainerRights(StorageContainer container) {
 		ensureStorageContainerObjectRights(container, Operation.DELETE);
+		ensureStorageContainerImportRights(container);
 	}
 
 	private void ensureStorageContainerObjectRights(StorageContainer container, Operation op) {
@@ -760,6 +839,12 @@ public class AccessCtrlMgr {
 
 		if (!allowed) {
 			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
+		}
+	}
+
+	private void ensureStorageContainerImportRights(StorageContainer container) {
+		if (isImportOp()) {
+			ensureStorageContainerObjectRights(container, Operation.BULK_IMPORT);
 		}
 	}
 
@@ -813,6 +898,7 @@ public class AccessCtrlMgr {
 
 	public void ensureCreateDistributionOrderRights(DistributionOrder order) {
 		ensureDistributionOrderObjectRights(order, Operation.CREATE);
+		ensureDistributionOrderImportRights(order);
 	}
 
 	public void ensureReadDistributionOrderRights(DistributionOrder order) {
@@ -821,10 +907,18 @@ public class AccessCtrlMgr {
 
 	public void ensureUpdateDistributionOrderRights(DistributionOrder order) {
 		ensureDistributionOrderObjectRights(order, Operation.UPDATE);
+		ensureDistributionOrderImportRights(order);
 	}
 
 	public void ensureDeleteDistributionOrderRights(DistributionOrder order) {
 		ensureDistributionOrderObjectRights(order, Operation.DELETE);
+		ensureDistributionOrderImportRights(order);
+	}
+
+	private void ensureDistributionOrderImportRights(DistributionOrder order) {
+		if (isImportOp()) {
+			ensureDistributionOrderObjectRights(order, Operation.BULK_IMPORT);
+		}
 	}
 	
 	private void ensureDistributionOrderObjectRights(DistributionOrder order, Operation operation) {
@@ -1003,6 +1097,7 @@ public class AccessCtrlMgr {
 	//////////////////////////////////////////////////////////////////////////////////////
 	public void ensureCreateOrUpdateSprRights(Visit visit) {
 		ensureSprObjectRights(visit, Operation.UPDATE);
+		ensureSprImportRights(visit);
 	}
 
 	public void ensureDeleteSprRights(Visit visit) {
@@ -1058,6 +1153,12 @@ public class AccessCtrlMgr {
 
 		if (!isAccessAllowedOnAnySite(accessList, mrnSites, userId)) {
 			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
+		}
+	}
+
+	private void ensureSprImportRights(Visit visit) {
+		if (isImportOp()) {
+			ensureSprObjectRights(visit, Operation.BULK_IMPORT);
 		}
 	}
 
@@ -1173,23 +1274,40 @@ public class AccessCtrlMgr {
 		if (CollectionUtils.isEmpty(getSites(Resource.SHIPPING_N_TRACKING, Operation.CREATE))) {
 			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
 		}
+
+		ensureShipmentImportRights();
 	}
-	
+
 	public void ensureUpdateShipmentRights(Shipment shipment) {
 		if (AuthUtil.isAdmin()) {
 			return;
 		}
-		
+
+		boolean allowed = false;
 		Set<Site> allowedSites = getSites(Resource.SHIPPING_N_TRACKING, Operation.UPDATE);
 		if (!shipment.isReceived() && allowedSites.contains(shipment.getSendingSite())) {
-			return; // sender can update
+			allowed = true; // sender can update
 		}
 		
 		if (shipment.isReceived() && allowedSites.contains(shipment.getReceivingSite())) {
-			return; // receiver can update
+			allowed = true; // receiver can update
 		}
-		
-		throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
+
+		if (!allowed) {
+			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
+		}
+
+		ensureShipmentImportRights();
+	}
+
+	private void ensureShipmentImportRights() {
+		if (!isImportOp()) {
+			return;
+		}
+
+		if (CollectionUtils.isEmpty(getSites(Resource.SHIPPING_N_TRACKING, Operation.BULK_IMPORT))) {
+			throw OpenSpecimenException.userError(RbacErrorCode.ACCESS_DENIED);
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -1263,5 +1381,9 @@ public class AccessCtrlMgr {
 	private boolean isAccessAllowedOnSite(Site accessSite, Site site, Long userId) {
 		return (accessSite != null && accessSite.equals(site)) ||
 			(accessSite == null && getUserInstituteSites(userId).contains(site));
+	}
+
+	private boolean isImportOp() {
+		return ImporterContextHolder.getInstance().isImportOp();
 	}
 }

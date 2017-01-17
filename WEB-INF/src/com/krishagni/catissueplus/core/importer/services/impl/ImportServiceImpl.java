@@ -534,6 +534,7 @@ public class ImportServiceImpl implements ImportService {
 			ObjectReader objReader = null;
 			CsvWriter csvWriter = null;
 			try {
+				ImporterContextHolder.getInstance().newContext();
 				ObjectSchema schema = schemaFactory.getSchema(job.getName(), job.getParams());
 				String filePath = getJobDir(job.getId()) + File.separator + "input.csv";
 				csvWriter = getOutputCsvWriter(job);
@@ -570,6 +571,7 @@ public class ImportServiceImpl implements ImportService {
 				csvWriter.writeNext(errorLine);
 				csvWriter.writeNext(new String[] { ExceptionUtils.getFullStackTrace(e) });
 			} finally {
+				ImporterContextHolder.getInstance().clearContext();
 				runningJobs.remove(job.getId());
 
 				IOUtils.closeQuietly(objReader);
@@ -664,6 +666,9 @@ public class ImportServiceImpl implements ImportService {
 					}
 				} catch (Exception e) {
 					errMsg = e.getMessage();
+					if (errMsg == null) {
+						errMsg = e.getClass().getName();
+					}
 				}
 				
 				String key = objReader.getRowKey();
@@ -673,10 +678,16 @@ public class ImportServiceImpl implements ImportService {
 					mergedObj.setKey(key);
 					mergedObj.setObject(parsedObj);
 				}
-				
-				mergedObj.addErrMsg(errMsg);
+
 				mergedObj.addRow(objReader.getCsvRow());
 				mergedObj.merge(parsedObj);
+				if (errMsg != null) {
+					//
+					// mark the object as processed whenever an error is encountered.
+					//
+					mergedObj.addErrMsg(errMsg);
+					mergedObj.setProcessed(true);
+				}
 
 				objectsMap.put(key, mergedObj);
 			}
@@ -744,8 +755,10 @@ public class ImportServiceImpl implements ImportService {
 						});
 
 				if (atomic) {
-					sessionFactory.getCurrentSession().flush();
-					sessionFactory.getCurrentSession().clear();
+					//
+					// Let's give a clean session for every object to be imported
+					//
+					clearSession();
 				}
 
 				if (resp.isSuccessful()) {
@@ -838,6 +851,28 @@ public class ImportServiceImpl implements ImportService {
 			}
 
 			return entityName;
+		}
+
+		private void clearSession() {
+			try {
+				sessionFactory.getCurrentSession().flush();
+			} catch (Exception e) {
+				//
+				// Oops, we encountered error. This happens when we've received database errors
+				// like data truncation error, unique constraint etc ... We can't do much except
+				// log and move forward
+				//
+				logger.info("Error flushing the database session", e);
+			} finally {
+				try {
+					sessionFactory.getCurrentSession().clear();
+				} catch (Exception e) {
+					//
+					// Something severely wrong...
+					//
+					logger.error("Error cleaning the database session", e);
+				}
+			}
 		}
 
 		private String getMsg(String key, Object ... params) {

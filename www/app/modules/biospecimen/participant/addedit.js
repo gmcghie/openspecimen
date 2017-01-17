@@ -100,6 +100,20 @@ angular.module('os.biospecimen.participant.addedit', ['os.biospecimen.models', '
       );
     };
 
+    function checkPreRegParticipants(matchedParticipants) {
+      $scope.partCtx.hasPreRegParticipants = false;
+
+      var matchingCp = function(cpr) { return cpr.cpId == $scope.cpId };
+      angular.forEach(matchedParticipants,
+        function(matchedPart) {
+          matchedPart.preReg = (matchedPart.participant.registeredCps || []).filter(matchingCp).length > 0;
+          if (matchedPart.preReg) {
+            $scope.partCtx.hasPreRegParticipants = true;
+          }
+        }
+      );
+    }
+
     $scope.pmiText = function(pmi) {
       return pmi.siteName + (pmi.mrn ? " (" + pmi.mrn + ")" : "");
     }
@@ -136,16 +150,26 @@ angular.module('os.biospecimen.participant.addedit', ['os.biospecimen.models', '
               return;
             }
 
-            $scope.allowIgnoreMatches = true;
-            for (var i = 0; i < result.length; ++i) {
-              var matchedAttrs = result[i].matchedAttrs;
-              if (matchedAttrs.length > 1 || (matchedAttrs[0] != 'lnameAndDob')) {
-                $scope.allowIgnoreMatches = false;
-                break;
-              }
-            } 
+            if (!$scope.cpr.id) {
+              checkPreRegParticipants(result);
+            }
 
-            $scope.allowIgnoreMatches = participant.id || $scope.allowIgnoreMatches;
+            $scope.allowIgnoreMatches = true;
+            angular.forEach(result,
+              function(match) {
+                if (!match.participant.id && match.participant.source != 'OpenSpecimen') {
+                  //
+                  // Ask API to not use existing participant ID
+                  //
+                  match.participant.id = -1;
+                }
+
+                if (match.matchedAttrs.length > 1 || match.matchedAttrs[0] != 'lnameAndDob') {
+                  $scope.allowIgnoreMatches = false;
+                }
+              }
+            );
+
             $scope.matchedParticipants = result;
             inputParticipant = $scope.cpr.participant;
           }
@@ -210,11 +234,16 @@ angular.module('os.biospecimen.participant.addedit', ['os.biospecimen.models', '
               Alerts.error('participant.no_matching_participant');
             }
           } else {
+            checkPreRegParticipants(result);
+
             $scope.allowIgnoreMatches = false;
             $scope.matchedParticipants = result;
 
             inputParticipant = $scope.cpr.participant;
-            $scope.selectParticipant(result[0].participant);
+
+            if (result.length == 1 && !result[0].preReg) {
+              $scope.selectParticipant(result[0].participant);
+            }
           }
         }
       );

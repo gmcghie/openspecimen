@@ -34,11 +34,13 @@ import com.krishagni.catissueplus.core.auth.repository.impl.AuthDaoImpl;
 import com.krishagni.catissueplus.core.biospecimen.repository.AnonymizeEventDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.CollectionProtocolDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.CollectionProtocolRegistrationDao;
+import com.krishagni.catissueplus.core.biospecimen.repository.ConsentStatementDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.CpReportSettingsDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.DaoFactory;
 import com.krishagni.catissueplus.core.biospecimen.repository.LabelPrintJobDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.ParticipantDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.SpecimenDao;
+import com.krishagni.catissueplus.core.biospecimen.repository.SpecimenKitDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.SpecimenListDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.SpecimenRequirementDao;
 import com.krishagni.catissueplus.core.biospecimen.repository.VisitsDao;
@@ -179,6 +181,13 @@ public class DaoFactoryImpl implements DaoFactory {
 		setSessionFactory(dao);
 		return dao;
 	}
+
+	@Override
+	public SpecimenKitDao getSpecimenKitDao() {
+		SpecimenKitDaoImpl dao = new SpecimenKitDaoImpl();
+		setSessionFactory(dao);
+		return dao;
+	}
 	
 	@Override
 	public PermissibleValueDao getPermissibleValueDao() {
@@ -261,6 +270,13 @@ public class DaoFactoryImpl implements DaoFactory {
 	public UnhandledExceptionDao getUnhandledExceptionDao() {
 		UnhandledExceptionDaoImpl dao = new UnhandledExceptionDaoImpl();
 		setSessionFactory(dao);
+		return dao;
+	}
+	
+	@Override
+	public ConsentStatementDao getConsentStatementDao() {
+		ConsentStatementDaoImpl dao = new ConsentStatementDaoImpl();
+		setSessionFactory(dao);;
 		return dao;
 	}
 }
